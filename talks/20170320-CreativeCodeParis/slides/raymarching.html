@@ -1,0 +1,902 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Raymarching</title>
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+    <script>
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName('head' )[0].appendChild(link);
+    </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h3>Raymarching</h3>
+
+          <ol class="fragment">
+            <li>Exemples</li>
+            <li>Algorithme de raymarching</li>
+            <li>Modélisation avec des fonctions distances signées</li>
+            <li>Illumination</li>
+            <li>Démo raymarching en WebGL / Processing</li>
+            <li>Programmation en direct</li>
+          </ol>
+        </section>
+
+        <section>
+          <h4>Exemples</h4>
+
+          <div style="font-size: smaller">
+            <p><a href="https://www.youtube.com/embed/ie4u2i_5OdE?start=139&end=167&version=3">the timeless</a> (mercury / Revision 2014 / 64k)</p>
+
+            <p><a href="https://www.youtube.com/embed/XF4SEVbxUdE?start=89&end=121&version=3">on</a> (mercury / Revision 2015 / 64k)</p>
+
+            <br>
+
+            <p><a href="https://www.shadertoy.com/embed/lsf3zr?gui=true&paused=true">Catacombs</a> (Íñigo Quílez / Shadertoy)</p>
+
+            <p><a href="https://www.shadertoy.com/embed/Mds3z2?gui=true&paused=true">Bridge</a> (Íñigo Quílez / Shadertoy)</p>
+
+            <p><a href="https://www.shadertoy.com/embed/XsBXWt?gui=true&paused=true">Fractal Land</a> (Kali / Shadertoy)</p>
+
+            <p><a href="https://www.shadertoy.com/embed/MsS3W3?gui=true&paused=true">Solstice</a> (Otavio Good / Shadertoy)</p>
+
+            <p><a href="https://www.shadertoy.com/embed/XtsSWs?gui=true&paused=true"</a>Skyline</a> (Otavio Good / Shadertoy)</p>
+          </div>
+        </section>
+
+        <section>
+          <h4>Introduction</h4>
+
+          <div class="fragment" style="font-size: 75%; text-align: left">
+            <p>Technique de synthèse d'images:</p>
+            <ul>
+              <li>Opposée du rendu par rastérisation (OpenGL, Direct3D, ...)</li>
+              <li>Proche du raytracing mais sans calcul explicite d'intersection</li>
+            </ul>
+          </div>
+
+          <div class="fragment" style="font-size: 75%; text-align: left">
+            <p>Historique:</p>
+            <ul>
+              <li>1989: Conçue pour le rendu de fractales puis de surfaces implicites</li>
+              <li>2009 (?)-Aujourd'hui: Renouveau grâce aux langages de shading et à l'arrivée de GPU suffisamment puissants pour le rendu en temps réel</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h4>Algorithme de raymarching</h4>
+
+          <div style="font-size: smaller">
+            <div class="fragment current-visible" data-fragment-index="0" style="position: absolute">
+              <p style="text-align: left">Rastérisation:</p>
+
+              <img src="img/rasterization.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="1" style="position: absolute">
+              <p style="text-align: left">Raycasting:</p>
+
+              <img src="img/raycasting.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="2" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas constant:</p>
+
+              <img src="img/raymarching-over.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="3" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas constant:</p>
+
+              <img src="img/raymarching-under.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="4" style="position: absolute">
+              <p style="text-align: left">Idée: Utiliser la distance à la surface pour ajuster dynamiquement le pas de marche</p>
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="5" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-0.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="6" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-1.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="7" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-2.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="8" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-3.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="9" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-4.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="10" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-5.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="11" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-6.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="12" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-7.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="13" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-8.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="14" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-9.png" width="70%" />
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Implémentation</h4>
+
+          <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+          <pre><code data-trim style="font-size: smaller">
+            float intersect(vec3 O /* origin */, vec3 d /* direction */) {
+                float t = 0;
+                for (int i = 0; i < MaxNumSteps; ++i) {
+                     vec3 P = O + t * d;
+                     float r = f(P);
+                     if (r < Epsilon)
+                         return t;
+                     t += r;
+                }
+                return MaxT;
+            }
+          </code></pre>
+
+          <div class="fragment" style="font-size: smaller">
+            <p style="color: #42affa"><code>f(P)</code>?</p>
+          </div>
+        </section>
+
+        <section>
+          <h4>Fonction distance signée</h4>
+
+          <div style="font-size: smaller">
+            <div class="fragment current-visible" data-fragment-index="0" style="position: absolute">
+              <p style="text-align: left">Un ensemble `ccS` est représenté par une fonction `f`: `bbbR^3 -> bbbR` telle que pour `P in bbbR^3`:</p>
+
+              <ul style="list-style-type: none">
+                <li>`f(P) = -d(P, del ccS) iff P in ccS`</li>
+                <li>`f(P) = 0 iff P in del ccS`</li>
+                <li>`f(P) = d(P, del ccS) iff P !in ccS`</li>
+              </ul>
+
+              <p style="text-align: left">avec `d(P, del ccS) = min_(Q in del ccS) |vec(PQ)|`</p>
+
+              <p>(cas particulier de surface implicite)</p> 
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="1" style="position: absolute">
+              <img src="img/sdf-0.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="2" style="position: absolute">
+              <img src="img/sdf-1.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="3" style="position: absolute">
+              <img src="img/sdf-2.png" width="70%" />
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Primitives de base - Sphère</h4>
+
+          <div style="width: 100%; overflow: hidden; font-size: smaller">
+            <div style="width: 45%; float: left; font-size: smaller">
+              <dl>
+                <dt>Sphère</dt>
+                <dd>centre `O`</dd>
+                <dd>rayon `R`</dd>
+                <dd>`f(P) = |vec(OP)| - R`</dd>
+              </dl>
+            </div>
+            <div style="width: 55%; float: right">
+              <img src="img/sphere.jpg" width="75%">
+            </div>
+          </div>
+          <div class="fragment" style="font-size: smaller">
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              float sdfSphere(vec3 P, float R) {
+                  return length(P) - R;
+              }
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Primitives de base - Demi-espace</h4>
+
+          <div style="width: 100%; overflow: hidden; font-size: smaller">
+            <div style="width: 45%; float: left; font-size: smaller">
+              <dl>
+                <dt>Demi-espace / plan</dt>
+                <dd>normale `vec n`</dd>
+                <dd>distance `d_O` à l'origine</dd>
+                <dd>`f(P) = < vec n . vec(OP) > + d_O`</dd>
+              </dl>
+            </div>
+            <div style="width: 55%; float: right">
+              <img src="img/plane.jpg" width="75%">
+            </div>
+          </div>
+          <div class="fragment" style="font-size: smaller">
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              float sdfPlane(vec3 P, vec3 n, float d) {
+                  return dot(n, P) + d;
+              }
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Primitives de base</h4>
+
+          <div class="fragment current-visible" data-fragment-index="0" style="position: absolute">
+            <div style="width: 100%; overflow: hidden; font-size: smaller">
+              <div style="width: 45%; float: left; font-size: smaller">
+                <dl>
+                  <dt>Cylindre</dt>
+                  <dd>centre `O`</dd>
+                  <dd>direction `vec e_z`</dd>
+                  <dd>rayon `R`</dd>
+                  <dd>`f(P) = |Pi_(xy)(vec(OP))| - R`</dd>
+                </dl>
+              </div>
+              <div style="width: 55%; float: right">
+                <img src="img/cylinder.jpg" width="75%">
+              </div>
+            </div>
+
+            <div style="font-size: smaller">
+              <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+              <pre><code data-trim style="font-size: smaller">
+                float sdfCylinder(vec3 P, float R) {
+                    return length(P.xy) - R;
+                }
+              </code></pre>
+            </div>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="1" style="position: absolute">
+            <div style="width: 100%; overflow: hidden; font-size: smaller">
+              <div style="width: 45%; float: left; font-size: smaller">
+                <dl>
+                  <dt>Tore</dt>
+                  <dd>centre `O`</dd>
+                  <dd>direction `vec e_z`</dd>
+                  <dd>rayons `R`, `r`</dd>
+                  <dd>`Q_x = |Pi_(xy)(vec(OP))| - R`</dd>
+                  <dd>`Q_y = Pi_z(vec(OP))`</dd>
+                  <dd>`f(P) = |vec(OQ)| - r`</dd>
+                </dl>
+              </div>
+              <div style="width: 55%; float: right">
+                <img src="img/torus.jpg" width="75%">
+              </div>
+            </div>
+
+            <div style="font-size: smaller">
+              <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+              <pre><code data-trim style="font-size: smaller">
+                float sdfTorus(vec3 P, float R, float r) {
+                    vec2 Q = vec2(length(P.xy) - R, P.z);
+                    return length(Q) - r;
+                }
+              </code></pre>
+            </div>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="2" style="position: absolute">
+            <div style="width: 100%; overflow: hidden; font-size: smaller">
+              <div style="width: 45%; float: left; font-size: smaller">
+                <dl>
+                  <dt>Cone</dt>
+                  <dd>centre `O`</dd>
+                  <dd>direction `vec u`</dd>
+                  <dd>`Q_x = |Pi_(xy)(vec(OP))|`</dd>
+                  <dd>`Q_y = Pi_(z)(vec(OP))`</dd>
+                  <dd>`f(P) = < vec(OQ), vec u>`</dd>
+                </dl>
+              </div>
+              <div style="width: 55%; float: right">
+                <img src="img/cone.jpg" width="75%">
+              </div>
+            </div>
+            <div style="font-size: smaller">
+              <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+              <pre><code data-trim style="font-size: smaller">
+                float sdfCone(vec3 P, vec2 u) {
+                    vec2 Q = vec2(length(P.xy), P.z);
+                    return dot(Q, u);
+                }
+              </code></pre>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Opérations booléennes</h4>
+
+          <div class="fragment current-visible" data-fragment-index="0" style="position: absolute; font-size: smaller">
+            <img src="img/union.jpg" width="65%">
+
+            <dl>
+              <dt>Union</dt>
+              <dd>`ccS_1 uu ccS_2 = { x in ccS_1 or x in ccS_2 }`</dd>
+              <dd>`f_(ccS_1 uu ccS_2) = min(f_(ccS_1), f_(ccS_2))`</dd>
+            </dl>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="2" style="position: absolute; font-size: smaller">
+            <img src="img/intersection.jpg" width="65%">
+
+            <dl>
+              <dt>Intersection</dt>
+              <dd>`ccS_1 nn ccS_2 = { x in ccS_1 and x in ccS_2 }`</dd>
+              <dd>`f_(ccS_1 nn S_2) >= max(f_(ccS_1), f_(ccS_2))`</dd>
+            </dl>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="3" style="position: absolute; font-size: smaller">
+            <img src="img/difference.jpg" width="65%">
+
+            <dl>
+              <dt>Différence</dt>
+              <dd>`ccS_1 \\ ccS_2 = ccS_1 nn bar ccS_2`</dd>
+              <dd>`ccS_1 \\ ccS_2 = { x in ccS_1 and x !in ccS_2 }`</dd>
+              <dd>`f_(ccS_1 \\ ccS_2) >= max(f_(ccS_1), -f_(ccS_2))`</dd>
+            </dl>
+
+            <dl>
+          </div>
+        </section>
+
+        <section>
+          <h4>Primitives + Opérations booléennes</h4>
+
+          <div class="fragment current-visible" data-fragment-index="1" style="position: absolute; font-size: smaller">
+            <img src="img/box-0.jpg" width="45%">
+
+            <div style="font-size: smaller">
+              <dl>
+                <dt>Demi-espace / plan</dt>
+                <dd>normale `vec n` et distance `d_O` à l'origine</dt>
+                <dd>`f(P) = < vec n . vec(OP) > + d_O`</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="2" style="position: absolute; font-size: smaller">
+            <img src="img/box-1.jpg" width="45%">
+
+            <div style="font-size: smaller">
+              <dl>
+                <dt>Tranche d'espace</dt>
+                <dd>centre `O` et demi-dimension `s_x`</dd>
+                <dd>`f(P) = max(< vec e_x . vec(OP) > - s_x, < -vec e_x . vec(OP) > - s_x)`</dd>
+                <dd>`f(P) = max(P_x - s_x, -P_x - s_x)`</dd>
+                <dd>`f(P) = |P_x| - s_x`</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="3" style="position: absolute; font-size: smaller">
+            <img src="img/box-2.jpg" width="45%">
+
+            <div style="font-size: smaller">
+              <dl>
+                <dt>Cylindre à section rectangulaire</dd>
+                <dd>centre `O`, direction `vec e_z` et demi-dimensions `(s_x, s_y)`</dd>
+                <dd>`f(P) = max(|P_x| - s_x, |P_y| - s_y)`</dd>
+              </dl>
+            </div>
+          </div>
+
+          <div class="fragment" data-fragment-index="4" style="position: absolute; font-size: smaller">
+            <img src="img/box-3.jpg" width="45%">
+
+            <div style="font-size: smaller">
+              <dl>
+                <dt>Pavé droit</dt>
+                <dd>centre `O` et demi-dimensions `vec s`</dt>
+                <dd>`f(P) = max(|P_x| - s_x, |P_y| - s_y, |P_z| - s_z)`</dd>
+              </dl>
+            </div>
+
+            <div class="fragment" style="font-size: smaller">
+              <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+              <pre><code data-trim style="font-size: smaller">
+                float sdfBox(vec3 P, vec3 s) {
+                    vec3 Q = abs(P) - s;
+                    return max(Q.x, max(Q.y, Q.z));
+                }
+              </code></pre>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Autres exemples</h4>
+
+          <div class="fragment current-visible" data-fragment-index="0" style="position: absolute; font-size: smaller">
+            <img src="img/round-box.jpg" width="45%">
+
+            <div style="font-size: smaller">
+              <dl>
+                <dt>Pavé droit à arrêtes arrondies</dt>
+              </dl>
+
+              <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+              <pre><code data-trim style="font-size: smaller">
+                float sdfRoundBox(vec3 P, vec3 s, float r) {
+                    vec3 Q = abs(P) - s;
+                    return length(max(Q, 0.0)) - r;
+                }
+              </code></pre>
+            </div>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="1" style="position: absolute; font-size: smaller">
+            <img src="img/capsule.jpg" width="45%">
+
+            <div style="font-size: smaller">
+              <dl>
+                <dt>Capsule</dt>
+              </dl>
+
+              <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+              <pre><code data-trim style="font-size: smaller">
+                float sdfCapsule(vec3 P, vec3 P1, vec3 P2, float r) {
+                    vec3 u = P - P1;
+                    vec3 v = P2 - P1;
+                    float d = clamp(dot(u, v) / dot(v, v), 0.0, 1.0);
+                
+                    return length(u - d * v) - r;
+                }
+              </code></pre>
+            </div>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="2" style="position: absolute; font-size: smaller">
+              <img src="img/icosahedron.jpg" width="45%">
+
+              <div style="font-size: smaller">
+                <dl>
+                  <dt>Octahèdre / Dodécahèdre / Isocaèdre</dt>
+                </dl>
+              </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Déformations</h4>
+
+          <div class="fragment current-visible" data-fragment-index="0" style="position: absolute; font-size: smaller">
+            <img src="img/affine.jpg" width="55%">
+
+            <div style="font-size: smaller">
+              <dl>
+                <dt>Translation, rotation, homothétie</dt>
+              </dl>
+
+              <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+              <pre><code data-trim style="font-size: smaller">
+                float sdfAffine(vec3 P) {
+                    mat3 Rz = makeRotation(Pi / 6.0, vec3(0.0, 0.0, 1.0));
+                    mat3 Ry = makeRotation(-Pi / 6.0, vec3(0.0, 1.0, 0.0));
+                    float s = 1.5;
+                    P = s * Ry * Rz * P + vec3(1.0, 0.5, 0.25);
+                    return sdfRoundBox(P, vec3(0.375, 0.5, 0.75), 0.125) / s;
+                }
+              </code></pre>
+            </div>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="1" style="position: absolute; font-size: smaller">
+            <img src="img/symmetry.jpg" width="55%">
+
+            <div style="font-size: smaller">
+              <dl>
+                <dt>Symmétrie</dt>
+              </dl>
+
+              <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+              <pre><code data-trim style="font-size: smaller">
+                float sdfRepeat(vec3 P) {
+                    P.xy = abs(P.xy);
+                    P.xy -= vec2(0.75, 1.0);
+                    return sdfRoundBox(P, vec3(0.375, 0.5, 0.75), 0.125);
+                }
+              </code></pre>
+            </div>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="2" style="position: absolute; font-size: smaller">
+            <img src="img/repeat.jpg" width="55%">
+
+            <div style="font-size: smaller">
+              <dl>
+                <dt>Répétition</dt>
+              </dl>
+
+              <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+              <pre><code data-trim style="font-size: smaller">
+                float sdfRepeat(vec3 P) {
+                    vec2 size = vec2(2.0, 3.0);
+                    P.xy = mod(P.xy + 0.5 * size, size) - 0.5 * size;
+                    return sdfRoundBox(P, vec3(0.375, 0.5, 0.75), 0.125);
+                }
+              </code></pre>
+            </div>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="3" style="position: absolute; font-size: smaller">
+            <img src="img/twist.jpg" width="55%">
+
+            <div style="font-size: smaller">
+              <dl>
+                <dt>Torsion et courbure</dt>
+              </dl>
+
+              <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+              <pre><code data-trim style="font-size: smaller">
+                float sdfTwist(vec3 P) {
+                    float c = cos(P.z);
+                    float s = sin(P.z);
+                    mat2 R = mat2(c, s, -s, c);
+                    P = vec3(R * P.xy, P.z);
+                    return sdfRoundBox(P, vec3(0.375, 0.5, 0.75), 0.125);
+                }
+              </code></pre>
+            </div>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="4" style="position: absolute; font-size: smaller">
+            <img src="img/displacement.jpg" width="55%">
+
+            <div style="font-size: smaller">
+              <dl>
+                <dt>Déplacement</dt>
+              </dl>
+
+              <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+              <pre><code data-trim style="font-size: smaller">
+                float sdfDisplacement(vec3 P) {
+                    float d1 = sdfSphere(P, 1.0);
+                    float d2 = 0.05 * sin(12.0 * P.x) * sin(12.0 * P.y) * sin(12.0 * P.z);
+                    return d1 + d2;
+                }
+              </code></pre>
+            </div>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="5" style="position: absolute; font-size: smaller">
+            <img src="img/lerp.jpg" width="55%">
+
+            <div style="font-size: smaller">
+              <dl>
+                <dt>Interpolation</dt>
+              </dl>
+
+              <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+              <pre><code data-trim style="font-size: smaller">
+                float sdfDisplacement(vec3 P) {
+                    float d1 = sdfSphere(P, 1.0);
+                    float d2 = sdfRoundBox(P, vec3(0.375, 0.5, 0.75), 0.125);
+                    float a = 0.75;
+                    return mix(d1, d2, a);
+                }
+              </code></pre>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Autres exemples de dérivation - Étoile</h4>
+
+          <div style="width: 100%; overflow: hidden; font-size: smaller">
+            <div style="width: 45%; float: left; font-size: smaller">
+              <dl>
+                <dt>Étoile</dt>
+                <dd>Répétition angulaire</dd>
+                <dd>Symmétrie par rapport à `vec e_x`</dd>
+                <dd>Symmétrie par rapport à `vec e_y`</dd>
+                <dd>Demi-espace</dd>
+              </dl>
+            </div>
+            <div style="width: 55%; float: right">
+              <img src="img/star.jpg" width="75%">
+            </div>
+          </div>
+
+          <div class="fragment" style="font-size: smaller">
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              float sdfStar(vec3 P) {
+                  float theta = atan(P.x, P.z);
+                  float r = length(P.xz);
+
+                  theta = mod(theta + Pi / 5.0, Pi / 2.5) - Pi / 5.0;
+                  P.zx = r * vec2(cos(theta), sin(theta));
+                  P.xy = abs(P.xy);
+
+                  return sdfPlane(P, normalize(vec3(3.0, 5.0, 1.0)), 0.2);
+              }
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Autres exemples de dérivation - ...</h4>
+
+          <div style="width: 100%; overflow: hidden; font-size: smaller">
+            <div style="width: 45%; float: left; font-size: smaller">
+              <dl>
+                <dt>Pavé droit à trous cylindriques</dt>
+                <dd>Pavé droit à arêtes arrondies</dd>
+                <dd>Translation</dd>
+                <dd>Cylindre</dd>
+                <dd>Cylindre à section carrée</dd>
+                <dd>Translation</dd>
+                <dd>Cylindre à section hexagonale</dd>
+                <dd>Union de 3 cylindres</dd>
+                <dd>Différence (lissée)</dd>
+              </dl>
+            </div>
+            <div style="width: 55%; float: right">
+              <img src="img/box-with-holes.jpg" width="75%">
+            </div>
+          </div>
+
+          <div class="fragment" style="font-size: smaller">
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              float sdfBoxWithHoles(vec3 P) {
+                  float d1 = sdfRoundBox(P, vec3(2.25, 0.75, 0.5), 0.125);
+                  float d2 = sdfCylinder(P - vec3(1.5, 0.0, 0.0), 0.5);
+                  float d3 = sdfBoxCylinder(P, vec2(0.5));
+                  float d4 = sdfHexagonalCylinder(P + vec3(1.5, 0.0, 0.0), 0.5);
+                  float d234 = min(d2, min(d3, d4));
+                  vec2 u = max(vec2(0.0625 + d1, 0.0625 - d234), vec2(0.0));
+                  return min(-0.0625, max(d1, -d234)) + length(u);
+              }
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Illumination</h4>
+
+          <div class="fragment" style="font-size: smaller">
+            <p style="text-align: left">Formules usuelles d'illumination applicables:</p>
+
+            <p style="text-align: center">`C_(p ixel) = C_(ambient) + C_(di f fuse) + C_(specu lar)`</p>
+
+            <p style="text-align: left">`C_(ambient) = L_(ambient) M_(ambient)`</p>
+
+            <p style="text-align: left">`C_(di f fuse) = L_(di f fuse) M_(di f fuse) max(< vec n . vec l >, 0)`</p>
+
+            <p style="text-align: left">`C_(specu lar) = L_(specu lar) M_(specu lar) max(< vec r . vec l >, 0)^(shi ni n ess)`</p>
+          </div>
+
+          <div class="fragment" style="font-size: smaller">
+            <p style="color: #42affa">Comment calculer la normale `vec n` à la surface `del ccS`?</p>
+          </div>
+        </section>
+
+        <section>
+          <h4>Calcul de normale</h4>
+
+          <div class="fragment" style="font-size: smaller">
+            <p style="text-align: left">La normale (sortante) `vec n` à `del ccS` est:</p>
+
+            <p>`vec n = vec grad f = ((del f) / (del x), (del f) / (del y), (del f) / (del z))`</p>
+          </div>
+
+          <div class="fragment" style="font-size: smaller">
+            <p style="text-align: left">Évaluation par <a href="https://en.wikipedia.org/wiki/Finite_difference">différences finies</a> (centrées):</p>
+
+            <p>`(del f) / (del x)(P) ~~ (f(P + h) - f(P - h)) / (2 h)` avec `h = epsilon vec e_x`</p>
+          </div>
+
+          <div class="fragment" style="font-size: smaller">
+            <pre><code data-trim style="font-size: smaller">
+              vec3 sdfNormal(vec3 P) {
+                  vec3 h = Epsilon * vec3(1.0, 0.0, 0.0);
+
+                  return normalize(vec3(sdf(P + h.xyz) - sdf(P - h.xyz),
+                                        sdf(P + h.zxy) - sdf(P - h.zxy),
+                                        sdf(P + h.yzx) - sdf(P - h.yzx)));
+              }
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Démo raymarching en WebGL</h4>
+
+          <div style="font-size: 75%">
+            <ol>
+              <li class="fragment">Dessiner deux triangles pour couvrir tout l'écran</li>
+              <li class="fragment">Vertex shader: transmet les coordonnées sans transformation
+                <pre><code data-trim style="font-size: smaller">
+                  attribute vec3 aPosition;
+
+                  void main() {
+                      gl_Position = vec4(aPosition, 1.0);
+                  }
+                </code></pre>
+              </li>
+              <li class="fragment">Fragment shader: invoqué en chaque pixel de l'écran
+                <ol>
+                  <li class="fragment">Calculer le rayon issu de la caméra à partir des coordonnées du pixel (variable <code style="font-size: smaller">gl_FragCoord</code> / <code style="font-size: smaller">fragCoord</code>),</li>
+                  <li class="fragment">Appliquer l'algorithme de raymarching à une fonction distance signée représentant la scène entière (géométrie + matériaux),</li>
+                  <li class="fragment">Si une intersection est trouvée, calculer l'illumination avec le matériau correspondant, l'ombrage, etc...</li>
+                  <li class="fragment">Ajouter les effets de post-traitement (brouillard, etc...),</li>
+                  <li class="fragment">Stocker la couleur finale du pixel dans <code style="font-size: smaller">gl_FragColor</code> / <code style="font-size: smaller">fragColor</code>.</li>
+                </ol>
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <section>
+          <h4>Démo raymarching en Processing</h4>
+
+          <div style="font-size: 75%">
+            <div class="fragment" style="text-align: left">
+              <p>Sketch:</p>
+
+              <pre><code data-trim>
+                PShader raymarching;
+
+                void setup() {
+                    size(WIDTH, HEIGHT, P3D);
+                    noStroke();
+                    // Load fragment shader from data/raymarching.glsl
+                    raymarching = loadShader("raymarching.glsl");
+                    raymarching.set("iResolution", float(WIDTH), float(HEIGHT));
+                }
+
+                void draw() {
+                    shader(raymarching);
+                    rect(0, 0, WIDTH, HEIGHT);
+                }
+              </code></pre>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Programmation en direct</h4>
+
+          <div class="fragment current-visible" data-fragment-index="0" style="position: absolute">
+            <img src="img/demo.jpg" width="75%">
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="1" style="position: absolute">
+            <img src="img/demo-01-background.jpg" width="20%">
+            <img src="img/demo-02-sphere.jpg" width="20%">
+            <img src="img/demo-03-diffuse.jpg" width="20%">
+            <img src="img/demo-04-specular.jpg" width="20%">
+            <br>
+            <img src="img/demo-05-domain.jpg" width="20%">
+            <img src="img/demo-06-cubes.jpg" width="20%">
+            <img src="img/demo-07-morphing.jpg" width="20%">
+            <img src="img/demo-08-material.jpg" width="20%">
+            <br>
+            <img src="img/demo-09-rotation.jpg" width="20%">
+            <img src="img/demo-10-fog.jpg" width="20%">
+            <img src="img/demo-11-elevation.jpg" width="20%">
+          </div>
+        </section>
+
+        <section>
+          <h4>Références</h4>
+
+          <ul>
+            <li>Présentation (2008): <a href="http://www.iquilezles.org/www/material/nvscene2008/rwwtt.pdf">Render the world with two triangles</a></li>
+            <li>Référence + code (2008): <a href="http://iquilezles.org/www/articles/distfunctions/distfunctions.htm">Modeling with distance functions</a></li>
+            <li>Code (2016): <a href="http://mercury.sexy/hg_sdf">hg_sdf</a> (⚠ GLSL, pas GLSL ES...)</li>
+            <li>Article (1996): <a href="http://graphics.cs.illinois.edu/sites/default/files/zeno.pdf">Sphere tracing</a></li>
+            <li>Présentation (2015): <a href="https://www.youtube.com/watch?v=s8nFqwOho-s">How to Create Content with Signed Distance Functions</a></li>
+            <li>Exemples: <a href="https://www.shadertoy.com/results?query=raymarching">Shadertoy</a> [raymarching]</li>
+          </ul>
+        </section>
+      </div>
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+    <script>
+      Reveal.initialize({
+        controls: true,
+        progress: true,
+        slideNumber: 'c/t',
+        history: true,
+        center: true,
+        overview: true,
+        keyboard: true,
+        touch: true,
+        help: true,
+        autoSlide: 0,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        math: {
+          mathjax: 'https://cdn.mathjax.org/mathjax/latest/MathJax.js',
+          config: 'AM_HTMLorMML' // See http://docs.mathjax.org/en/latest/config-files.html
+        },
+        dependencies: [
+          { src: 'plugin/markdown/marked.js' },
+          { src: 'plugin/markdown/markdown.js' },
+          { src: 'plugin/math/math.js', async: true },
+          { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+        ]
+      });
+    </script>
+  </body>
+</html>
+<!-- vim:set sw=2: -->
