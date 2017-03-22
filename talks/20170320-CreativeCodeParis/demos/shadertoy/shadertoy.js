@@ -1,31 +1,5 @@
 'use strict';
 
-var I_RESOLUTION = 0;
-var I_GLOBAL_TIME = 1;
-var I_MOUSE = 2;
-
-var A_POSITION = 0;
-
-var VERTEX_SHADER_SOURCE = '' +
-  'attribute vec3 aPosition;                                             \n' +
-  '                                                                      \n' +
-  'void main() {                                                         \n' +
-  '    gl_Position = vec4(aPosition, 1.0);                               \n' +
-  '}'
-
-
-var FRAGMENT_SHADER_SOURCE_HEADER = '' +
-  'precision highp float;                                                \n' +
-  '                                                                      \n' +
-  'uniform vec3 iResolution;                                             \n' +
-  'uniform float iGlobalTime;                                            \n' +
-  'uniform vec4 iMouse;                                                  \n'
-
-var FRAGMENT_SHADER_SOURCE_FOOTER = '                                \
-void main() {                                                        \
-    mainImage(gl_FragColor, gl_FragCoord.xy);                        \
-}'
-
 function Demo(canvas, gl, url) {
   this.canvas = canvas;
   this.gl = gl;
@@ -41,6 +15,41 @@ function Demo(canvas, gl, url) {
 
   this.firstDisplayTime = 0.0;
 }
+
+Demo.Uniforms = {};
+Demo.Uniforms.RESOLUTION = 0;
+Demo.Uniforms.GLOBAL_TIME = 1;
+Demo.Uniforms.MOUSE = 2;
+Demo.UniformNames = [
+  'iResolution',
+  'iGlobalTime',
+  'iMouse',
+];
+
+Demo.Attributes = {};
+Demo.Attributes.POSITION = 0;
+Demo.AttributeNames = [
+  'aPosition',
+];
+
+Demo.VERTEX_SHADER_SOURCE = '' +
+  'attribute vec3 aPosition;                                             \n' +
+  '                                                                      \n' +
+  'void main() {                                                         \n' +
+  '    gl_Position = vec4(aPosition, 1.0);                               \n' +
+  '}'
+
+Demo.FRAGMENT_SHADER_SOURCE_HEADER = '' +
+  'precision highp float;                                                \n' +
+  '                                                                      \n' +
+  'uniform vec3 iResolution;                                             \n' +
+  'uniform float iGlobalTime;                                            \n' +
+  'uniform vec4 iMouse;                                                  \n'
+
+Demo.FRAGMENT_SHADER_SOURCE_FOOTER = '' +
+  'void main() {                                                         \n' +
+  '    mainImage(gl_FragColor, gl_FragCoord.xy);                         \n' +
+  '}'
 
 Demo.prototype.init = function() {
   var gl = this.gl;
@@ -59,13 +68,17 @@ Demo.prototype.init = function() {
   this.program = program;
 
   this.uniformLocations = [
-    gl.getUniformLocation(program, 'iResolution'),
-    gl.getUniformLocation(program, 'iGlobalTime'),
-    gl.getUniformLocation(program, 'iMouse'),
+    gl.getUniformLocation(program,
+      Demo.UniformNames[Demo.Uniforms.RESOLUTION]),
+    gl.getUniformLocation(program,
+      Demo.UniformNames[Demo.Uniforms.GLOBAL_TIME]),
+    gl.getUniformLocation(program,
+      Demo.UniformNames[Demo.Uniforms.MOUSE]),
   ];
 
   this.attribLocations = [
-    gl.getAttribLocation(program, 'aPosition'),
+    gl.getAttribLocation(program,
+      Demo.AttributeNames[Demo.Attributes.POSITION]),
   ];
 
   gl.useProgram(this.program);
@@ -74,10 +87,11 @@ Demo.prototype.init = function() {
   this.indexBuffer = buffers.indexBuffer;
   this.indexCount = buffers.indexCount;
 
-  gl.enableVertexAttribArray(this.attribLocations[A_POSITION]);
+  var location = this.attribLocations[Demo.Attributes.POSITION];
+
+  gl.enableVertexAttribArray(location);
   gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffers[0]);
-  gl.vertexAttribPointer(this.attribLocations[A_POSITION],
-                         3, gl.FLOAT, false, 3 * 4, 0);
+  gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 3 * 4, 0);
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 
@@ -103,10 +117,14 @@ Demo.prototype.renderGraphics = function() {
   var clickX = 0.0;
   var clickY = 0.0;
 
-  gl.uniform3f(this.uniformLocations[I_RESOLUTION], width, height, depth);
-  gl.uniform1f(this.uniformLocations[I_GLOBAL_TIME], time);
-  gl.uniform4f(this.uniformLocations[I_MOUSE],
-               motionX, motionY, clickX, clickY);
+  var location = this.uniformLocations[Demo.Uniforms.RESOLUTION];
+  gl.uniform3f(location, width, height, depth);
+
+  location = this.uniformLocations[Demo.Uniforms.GLOBAL_TIME];
+  gl.uniform1f(location, time);
+
+  location = this.uniformLocations[Demo.Uniforms.MOUSE];
+  gl.uniform4f(location, motionX, motionY, clickX, clickY);
 
   gl.drawElements(gl.TRIANGLES, this.indexCount, gl.UNSIGNED_SHORT, 0);
 }
@@ -188,7 +206,7 @@ function getShaderSource(url) {
   return xhr.responseText;
 }
 
-function createShaderProgram(gl, vertexShader, fragmentShader, attribNames) {
+function createShaderProgram(gl, vertexShader, fragmentShader) {
   var program = gl.createProgram();
 
   if (!program)
@@ -196,12 +214,6 @@ function createShaderProgram(gl, vertexShader, fragmentShader, attribNames) {
 
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
-
-  if (attribNames)
-    for (var i in attribNames)
-      if (attribNames.hasOwnProperty(i))
-        gl.bindAttribLocation(program, i, attribNames[i]);
-
   gl.linkProgram(program);
 
   if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
@@ -217,8 +229,7 @@ function createShaderProgram(gl, vertexShader, fragmentShader, attribNames) {
 
 function createProgram(gl, url) {
   var vertexShader = createShaderFromSource(gl, gl.VERTEX_SHADER,
-                                            VERTEX_SHADER_SOURCE,
-                                            console.log);
+                                            Demo.VERTEX_SHADER_SOURCE);
 
   if (!vertexShader) {
     console.log("can't create vertex shader");
@@ -231,13 +242,12 @@ function createProgram(gl, url) {
     return null;
 
   var fragmentShaderSource =
-    FRAGMENT_SHADER_SOURCE_HEADER +
+    Demo.FRAGMENT_SHADER_SOURCE_HEADER +
     shaderSource +
-    FRAGMENT_SHADER_SOURCE_FOOTER;
+    Demo.FRAGMENT_SHADER_SOURCE_FOOTER;
 
   var fragmentShader = createShaderFromSource(gl, gl.FRAGMENT_SHADER,
-                                              fragmentShaderSource,
-                                              console.log);
+                                              fragmentShaderSource);
 
   if (!fragmentShader) {
     console.log("can't create fragment shader");
@@ -245,8 +255,7 @@ function createProgram(gl, url) {
     return null;
   }
 
-  var program = createShaderProgram(gl, vertexShader, fragmentShader,
-                                    console.log);
+  var program = createShaderProgram(gl, vertexShader, fragmentShader);
 
   if (!program) {
     console.log("can't create shader program");

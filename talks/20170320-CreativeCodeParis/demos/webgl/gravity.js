@@ -495,6 +495,7 @@ function createProgram(gl, vertexShaderSourceUrl, fragmentShaderSourceUrl) {
 //gl.deleteShader(vertexShader);
   return program;
 }
+
 function createVertexBuffer(gl, data) {
   var vertexBuffer = gl.createBuffer();
   var array = new Float32Array(data);
@@ -582,10 +583,10 @@ Demo.prototype.initBuffers = function() {
   var spherePositions = [];
   var sphereNormals = [];
   this.sphereVertexCount = makeSphere(r, spherePositions, sphereNormals);
-  console.log('# of sphere vertices: ' + this.sphereVertexCount);
-
   this.spherePositionBuffer = createVertexBuffer(gl, spherePositions);
   this.sphereNormalBuffer = createVertexBuffer(gl, sphereNormals);
+
+  console.log('# of sphere vertices: ' + this.sphereVertexCount);
 }
 
 Demo.prototype.initShaders = function() {
@@ -684,12 +685,12 @@ Demo.prototype.updateState = function() {
 Demo.prototype.updateUniforms = function() {
   var gl = this.gl;
 
-  var l = this.uniformLocations[Demo.Uniforms.MODEL_VIEW_PROJECTION_MATRIX];
+  var location = this.uniformLocations[Demo.Uniforms.MODEL_VIEW_PROJECTION_MATRIX];
   var mvpArray = this.mvpArray;
-  gl.uniformMatrix4fv(l, false, mvpArray);
+  gl.uniformMatrix4fv(location, false, mvpArray);
 
-  l = this.uniformLocations[Demo.Uniforms.LIGHT_VECTOR];
-  gl.uniform3fv(l, Demo.LightVector);
+  location = this.uniformLocations[Demo.Uniforms.LIGHT_VECTOR];
+  gl.uniform3fv(location, Demo.LightVector);
 }
 
 Demo.prototype.updateMaterialUniforms = function(ambient, diffuse) {
