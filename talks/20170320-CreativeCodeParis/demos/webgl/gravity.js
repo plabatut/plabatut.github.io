@@ -551,9 +551,11 @@ function Demo(canvas, gl) {
 
   this.boxPositionBuffer = null;
   this.boxNormalBuffer = null;
+  this.boxVertexCount = 0;
 
   this.spherePositionBuffer = null;
   this.sphereNormalBuffer = null;
+  this.sphereVertexCount = 0;
 
   this.program = null;
   this.uniformLocations = new Array(Demo.Uniforms.COUNT);
