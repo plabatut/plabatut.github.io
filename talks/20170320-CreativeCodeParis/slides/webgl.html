@@ -1,0 +1,527 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WebGL</title>
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+    <script>
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName('head' )[0].appendChild(link);
+    </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h4>WebGL</h4>
+
+          <ol class="fragment">
+            <li>Introduction</li>
+            <li>Pipeline de rendu</li>
+            <li>Vertex buffers</li>
+            <li>Shaders</li>
+            <li>Divers</li>
+            <li>Adaptation d'un sketch Processing</li>
+            <li>Post-traitement</li>
+          </ol>
+        </section>
+
+        <section>
+          <h4>Introduction</h4>
+
+          <div style="font-size: 75%; text-align: left">
+            <p class="fragment">Interface de programmation en JavaScript pour le rendu 2D/3D adaptée aux accélérateurs graphiques (GPU)</p>
+            <p class="fragment">Expose OpenGL ES 2.0 / 3.0 via un contexte de rendu associé à un élément HTML canvas</p>
+          </div>
+
+          <div class="fragment" style="font-size: 70%; text-align: left">
+            <p>Historique:</p>
+            <ul>
+              <li>1992: OpenGL 1.0</li>
+              <li>2004: OpenGL 2.0, introduction des shaders</li>
+              <li>2007: OpenGL ES 2.0, smartphones, tablettes, consoles, etc...</li>
+              <li>2011: WebGL 1.0, basé sur OpenGL ES 2.0</li>
+              <li>2011: WebGL 1.0 disponible dans Firefox 4, Chrome 9 et Safari 5.1</li>
+              <li>2011: WebGL 1.0 disponible dans Internet Explorer 11</li>
+              <li>2012: OpenGL ES 3.0, rétro-compatible avec OpenGL ES 2.0</li>
+              <li>2017: WebGL 2.0, basé sur OpenGL ES 3.0</li>
+              <li>2017: WebGL 2.0 disponible dans Firefox 51 et Chrome 56</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h4>Introduction</h4>
+
+          <div style="font-size: smaller">
+            <p>Point de départ: récupérer un contexte WebGL (HTML5 Canvas)</p>
+
+            <p style="text-align: left; font-size: smaller">Code HTML</p>
+            <pre><code data-trim>
+               <canvas id="canvas" width="1280" height="720"></canvas>
+            </code></pre>
+
+            <p style="text-align: left; font-size: smaller">Code JavaScript</p>
+            <pre><code data-trim>
+              var canvas = document.getElementById('canvas');
+              var gl = canvas.getContext('webgl');
+
+              if (!gl)
+                return;
+
+              // Call WebGL methods gl.*
+            </code></pre>
+          </div>
+        </section>
+        <section>
+          <h4>Pipeline de rendu</h4>
+
+          <img src="img/webgl-pipeline.jpg" width="85%">
+        </section>
+
+        <section>
+          <h4>Vertex buffers - Création</h4>
+
+          <div style="font-size: smaller">
+            <p>Géométrie stockée dans des vertex buffers</p>
+
+            <p>(tableaux de données résidant en mémoire du GPU)</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              var positions = [
+                  // 2 triangles for +z face
+                  -1.0, -1.0,  1.0, 
+                   1.0, -1.0,  1.0, 
+                   1.0,  1.0,  1.0, 
+
+                  -1.0, -1.0,  1.0, 
+                   1.0,  1.0,  1.0, 
+                  -1.0,  1.0,  1.0, 
+                  // ...
+              ];
+              var positionArray = new Float32Array(positions);
+
+              var positionBuffer = gl.createBuffer();
+              gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+              gl.bufferData(gl.ARRAY_BUFFER, positionArray, gl.STATIC_DRAW)
+              gl.bindBuffer(gl.ARRAY_BUFFER, null);
+            </code></pre>
+
+            <p style="text-align: left; font-size: smaller">À rapprocher de <code>beginShape()</code> / <code>endShape()</code> en Processing</p>
+        </section>
+
+        <section>
+          <h4>Vertex buffers - Utilisation</h4>
+
+          <div style="font-size: smaller">
+            <p>Type de géométrie (triangles, bande de triangles, points, lines) spécifié lors de l'appel à la fonction de rendu <code>DrawArrays()</code></p>
+
+            <pre><code data-trim>
+              var numVertices = positions.length / 3;
+
+              gl.DrawArrays(gl.TRIANGLES, 0, numVertices);
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Shaders</h4>
+
+          <div style="font-size: smaller">
+            <div style="font-size: smaller; text-align: left">
+              <dl class="fragment">
+                <dt>Vertex shader</dt>
+                <dd>Programme pour calculer la position finale d'un vertex (vertex shader)</dt>
+              </dl>
+            </div>
+
+            <br>
+
+            <div style="font-size: smaller">
+              <dl class="fragment">
+                <dt>Fragment shader</dt>
+                <dd>Programme pour calculer la couleur finale d'un pixel parcouru lors de la rastérization (fragment shader)</dd>
+              </dl>
+            </div>
+
+            <br>
+
+            <div style="font-size: smaller">
+              <p class="fragment" style="text-align: left">Shaders écrits avec un langage de programmation dédié: GLSL ES</p>
+            </div>
+        </section>
+
+        <section>
+          <h4>Shaders - GLSL ES</h4>
+
+          <div style="font-size: smaller">
+            <p class="fragment" style="text-align: left">Syntaxe dérivée du C</p>
+
+            <div class="fragment" style="text-align: left">
+              <p>Additions majeures:</p>
+
+              <ul style="font-size: smaller">
+                <li class="fragment">Types et opérations pour vecteurs / matrices de faible dimensions: <code>vec(2|3|4)</code>, <code>mat(2|3|4)</code></li>
+                <li class="fragment">Opération d'extraction des composantes: <code>vec3(1.0, 2.0, 3.0).zy</code></li>
+                <li class="fragment">Qualificateurs d'argument de fonction: <code>in</code>, <code>out</code>, <code>inout</code></li>
+                <li class="fragment">Fonctions: mathématiques (<code>sin</code>, <code>cos</code>, ..., <code>clamp</code>, <code>mix</code>, <code>smoothstep</code>) et autres (<code>distance</code>, <code>cross</code>, <code>reflect</code>, ...)
+                <li class="fragment">Variables de type <code>attribute</code> (vertex), <code>uniform</code> (globale) et <code>varying</code> (interpolée)</li>
+                <li class="fragment">Variable de sortie: <code>gl_Position</code> (vertex), <code>gl_FragCoord</code> (fragment)</li>
+                <li class="fragment">Point d'entrée: <code>main()</code></li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Shaders - GLSL ES</h4>
+
+          <div style="font-size: smaller">
+            <div class="fragment" style="text-align: left">
+              <p>Limitations:</p>
+
+              <ul style="font-size: smaller">
+                <li class="fragment">Environment d'exécution très limité</li>
+                <li class="fragment">Tableaux à une dimension seulement</li>
+                <li class="fragment">Taille et indexage des tableaux avec expression constante</li>
+                <li class="fragment">Expression constante pour le nombre d'itérations dans une boucle</li>
+                <li class="fragment">...</li>
+              </ul>
+            </div>
+        </section>
+
+
+        <section>
+          <h4>Shaders - Vertex shaders</h4>
+
+          <div style="font-size: smaller">
+            <p style="text-align: left">Exemple de vertex shader:</p>
+
+            <p>Transformation de position et copie de normale</p>
+
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              attribute vec3 aPosition;
+              attribute vec3 aNormal;
+
+              uniform mat4 uProjectionMatrix;
+              uniform mat4 uModelViewMatrix;
+
+              varying vec3 vNormal;
+
+              void main() {
+                  gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0);
+                  vNormal = aNormal;
+              }
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Shaders - Fragment Shader</h4>
+
+          <div style="font-size: smaller">
+            <p>Exemple de fragment shader: modèle simplifié d'illumination</p>
+
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              precision highp float;
+
+              varying vec3 vNormal;
+
+              uniform vec3 uAmbient;
+              uniform vec3 uDiffuse;
+              uniform vec3 uLightVector;
+
+              void main() {
+                  vec3 color = uAmbient;
+                  color += uDiffuse * max(dot(vNormal, normalize(uLightVector)), 0.0);
+                  gl_FragColor = vec4(color, 1.0);
+              }
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Shaders - Création</h4>
+
+          <div style="font-size: smaller">
+            <p>Compiler un vertex shader à partir du code GLSL sous forme de chaîne de charactère (<code>shaderSource</code>)</p>
+
+            <p style="text-align: left; font-size: smaller">Code WebGL</p>
+            <pre><code data-trim>
+              var vertexShader = gl.createShader(gl.VERTEX_SHADER);
+              // Use gl.FRAGMENT_SHADER for fragment shaders
+
+              gl.shaderSource(vertexShader, shaderSource);
+              gl.compileShader(vertexShader);
+
+              if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+                  console.log(gl.getShaderInfoLog(vertexShader));
+                  // ...
+              }
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Shaders - Édition de liens</h4>
+
+          <div style="font-size: smaller">
+            <p>Lier un vertex shader et un fragment shader</p>
+
+            <p>en un shader program utilisable avec le pipeline de rendu</p>
+
+            <p style="text-align: left; font-size: smaller">Code WebGL</p>
+
+            <pre><code data-trim>
+              var program = gl.createProgram();
+              gl.attachShader(program, vertexShader);
+              gl.attachShader(program, fragmentShader);
+              gl.linkProgram(program);
+
+              if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+                  console.log(gl.getProgramInfoLog(program));
+
+                  // ...
+              }
+
+              gl.useProgram(program);
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Shaders - Attributs de vertex et variables uniformes</h4>
+
+          <div style="font-size: smaller">
+            <div class="fragment">
+              <p>Attributs de vertex</p>
+
+              <p style="text-align: left; font-size: smaller">Code WebGL</p>
+
+              <pre><code data-trim>
+                gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+
+                var location = gl.getAttribLocation('aPosition');
+                gl.enableVertexAttribArray(location);
+                gl.vertexAttribPointer(location, 3, gl.FLOAT, false, 0, 0);
+              </code></pre>
+            </div>
+
+            <div class="fragment">
+              <p>Variables uniformes</p>
+
+              <p style="text-align: left; font-size: smaller">Code WebGL</p>
+
+              <pre><code data-trim>
+                var projectionMatrix = [ /* ... */ ];
+                var location = gl.getUniformLocation('uProjectionMatrix');
+                gl.uniformMatrix4fv(location, false, projectionMatrix);
+              </code></pre>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Divers</h4>
+
+          <div style="font-size: smaller">
+            <p style="text-align: left; font-size: smaller">Code JavaScript</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              function setup() {
+                // ...
+                gl.clearColor(0.0, 0.0, 0.0, 1.0);
+                gl.enable(gl.DEPTH_TEST);
+                // ...
+              }
+
+              function draw() {
+                gl.viewport(0, 0, WIDTH, HEIGHT);
+                gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+                // ...
+              }
+            </code></pre>
+
+            <p>Gestion d'évènements et animation</p>
+
+            <p style="text-align: left; font-size: smaller">Code JavaScript</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              window.addEventListener('mousemove', handleMouse, false);
+              // ...
+              window.requestAnimationFrame(canvas, animationLoop);
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Adaptation d'un sketch Processing</h4>
+
+          <div style="font-size: smaller">
+            <p><a href="https://www.openprocessing.org/sketch/156273">3D Gravity Well</a> (Marvin K)</p>
+
+            <div class="fragment" style="font-size: smaller; text-align: left">
+              <p>Portage WebGL:</p>
+
+              <ul>
+                <li class="fragment">Caméra:
+                  <ul>
+                    <li>rotation, translation, projection via une classe Matrix4x4</li>
+                    <li>variable uniforme pour la projection / transformation finale</li>
+                  </ul>
+                </li>
+                <li class="fragment">Géométrie:
+                  <ul>
+                    <li>génération explicite de triangles pour sphère et cube</li>
+                    <li>vertex buffers pour position et normale</li>
+                  </ul>
+                </li>
+                <li class="fragment">Matériaux et illumination:
+                  <ul>
+                    <li>variable uniforme pour les matériaux et la source de lumière</li>
+                    <li> calcul d'illumination dans le fragment shader</li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+
+            <div style="font-size: smaller; text-align: left">
+              <p class="fragment">Taille du code:</p>
+
+              <ul>
+                <li class="fragment">Processing.js: ~ 60 LoC</li>
+                <li class="fragment">WebGL + GLSL: ~ 800 LoC</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Adaptation d'un sketch Processing</h4>
+
+          <div style="font-size: smaller">
+              <img src="img/gravity.jpg" width="45%">
+
+              <img src="img/gravity-plus.jpg" width="45%">
+          </div>
+        </section>
+
+        <section>
+          <h4>Adaption d'un sketch Processing</h4>
+
+          <div style="font-size: smaller">
+            <p><a href="https://www.openprocessing.org/sketch/156273">3D Gravity Well</a> (Marvin K)</p>
+          </div>
+
+            <div class="fragment" style="font-size: smaller; text-align: left">
+              <p>Améliorations possibles en WebGL:</p>
+
+              <ul>
+                <li class="fragment">Anticrénelage: activer l'option antialias</li>
+                <li class="fragment">Plus de géométrie:
+                  <ul>
+                    <li>Activer le filtrage des faces vues de dos (backface culling)</li>
+                    <li>Un seul vertex buffer pour stocker position + normal</li>
+                  </ul>
+                </li>
+                <li class="fragment">(Encore) plus de géométrie:
+                  <ul>
+                    <li>Calcul d'élévation réalisé dans le vertex shader</li>
+                  </ul>
+                </li>
+                <li class="fragment">Couleur fonction de l'élévation</li>
+                <li class="fragment">Tracé des lignes de niveau de l'élévation</li>
+                <li class="fragment">Post-traitement: brouillard (masque les limites de la grille)</li>
+              </ul>
+        </section>
+
+        <section>
+          <h4>Post-traitement: brouillard (fog)</h4>
+
+          <div style="width: 100%; overflow: hidden">
+            <div style="width: 50%; float: left; font-size: 55%">
+              <p style="text-align: left">Améliore la perception de la profondeur</p>
+
+              <p>`C_(p ixel)^' = (1 - t) C_(p ixel) + t C_(fog)`</p>
+
+              <p>`t = 1 - e^(-(rho d)^2)`</p>
+
+              <p>avec `d`: distance camera-oeil-origine / point de la scène,</p>
+
+              <p>et `rho`: densité de brouillard</p>
+
+              <br/>
+
+              <p style="text-align: left">Alternatives:</p>
+
+              <p>`t = (d - d_min) / (d_max - d_min)` ou `t = 1 - e^(-rho d)`</p>
+
+            </div>
+
+            <div>
+              <img src="img/disable-fog.jpg" width="45%">
+
+              <br/>
+
+              <img src="img/enable-fog.jpg" width="45%">
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Références</h4>
+
+          <ul>
+            <li>Site officiel: <a href="https://www.khronos.org/webgl">WebGL - OpenGL ES for the Web</a></li>
+            <li>Manuel OpenGL ES 2.0: <a href="https://www.khronos.org/registry/OpenGL-Refpages/es2.0/">OpenGL ES 2.0 Reference Pages</a></li>
+            <li>Tutoriel MDN: <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/Tutorial">WebGL Tutorial</a></li>
+            <li>Bibliothèque 3D: <a href="https://threejs.org">three.js</a></li>
+            <li>Bibliothèque 3D: <a href="https://babylonjs.com">BabylonJS</a></li>
+            <li>Exemples WebGL: <a href="https://www.chromeexperiments.com/webgl">Chome Experiments (WebGL)</a></li>
+            <li>Exemples GLSL ES: <a href="http://glslsandbox.com">GLSL Sandbox</a></li>
+          </ul>
+        </section>
+      </div>
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+    <script>
+      Reveal.initialize({
+        controls: true,
+        progress: true,
+        slideNumber: 'c/t',
+        history: true,
+        center: true,
+        overview: true,
+        keyboard: true,
+        touch: true,
+        help: true,
+        autoSlide: 0,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        math: {
+          mathjax: 'https://cdn.mathjax.org/mathjax/latest/MathJax.js',
+          config: 'AM_HTMLorMML' // See http://docs.mathjax.org/en/latest/config-files.html
+        },
+        dependencies: [
+          { src: 'plugin/markdown/marked.js' },
+          { src: 'plugin/markdown/markdown.js' },
+          { src: 'plugin/math/math.js', async: true },
+          { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+        ]
+      });
+    </script>
+  </body>
+</html>
+<!-- vim:set sw=2: -->
