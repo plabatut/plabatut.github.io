@@ -1,0 +1,446 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rendu 3D (avec Processing)</title>
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+    <script>
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName('head' )[0].appendChild(link);
+    </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h4>Rendu 3D (avec Processing)</h4>
+
+          <ol class="fragment">
+            <li>Exemples</li>
+            <li>Introduction</li>
+            <li>Caméra</li>
+            <li>Géométrie</li>
+            <li>Matériaux et Illumination</li>
+          </ol>
+        </section>
+
+        <section>
+          <h4>Exemples (Processing.js)</h4>
+
+          <div style="font-size: smaller">
+            <p><a href="https://www.openprocessing.org/sketch/400431">Watch your step</a> (snowdrop42)</p>
+            <p><a href="https://www.openprocessing.org/sketch/156273">3D Gravity Well</a> (Marvin K)</p>
+            <p><a href="https://www.openprocessing.org/sketch/65616">3D Arcs</a> (Jerome Faria)</p>
+            <p><a href="https://www.openprocessing.org/sketch/256649">Form 333B</a> (Raven Kwok)</p>
+            <p><a href="https://www.openprocessing.org/sketch/190452">Spiral Orbit Boxes</a> (Patrick DiGiovanni)</p>
+            <p><a href="https://www.openprocessing.org/sketch/413059">Spirals</a> (Tetsuya Matsuno)</p>
+          </div>
+        </section>
+
+        <section>
+          <h4>Introduction</h4>
+
+          <div style="font-size: smaller">
+            <div class="fragment">
+              <p>Rendu 2D</p>
+
+              <p style="text-align: left; font-size: smaller">Code Processing</p>
+
+              <pre><code data-trim>
+                size(WIDTH, HEIGHT, P2D);
+              </code></pre>
+            </div>
+
+            <div class="fragment">
+              <p>Rendu 3D</p>
+
+              <p style="text-align: left; font-size: smaller">Code Processing</p>
+
+              <pre><code data-trim>
+                size(WIDTH, HEIGHT, P3D);
+              </code></pre>
+            </div>
+          </div>
+
+          <div class="fragment" style="font-size: smaller">
+            <p>Système de coordonnées</p>
+
+            <div style="text-align: left">
+              <ul>
+                <li>origine en haut à gauche,</li>
+                <li>axe x (horizontal) croissant vers la droite,</li>
+                <li>axe y (vertical) croissant vers le bas,</li>
+                <li class="fragment" style="color: #42affa">axe z (profondeur) croissant vers l'écran.</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Introduction</h4>
+
+          <div class="fragment" style="font-size: smaller">
+            <p>Opérations</p>
+
+            <p style="text-align: left; font-size: smaller">Code Processing</p>
+            <pre><code data-trim>
+              PVector v = new PVector(x, y, z);
+              translate(tx, ty, tz);
+              rotateX(angle);
+              rotateY(angle);
+              rotateZ(angle);
+              scale(sx, sy, sz);
+            </code></pre>
+          </div>
+
+          <div class="fragment" style="font-size: smaller">
+            <p>Primitives</p>
+
+            <p style="text-align: left; font-size: smaller">Code Processing</p>
+            <pre><code data-trim>
+              point(x, y, z);
+              line(x1, y1, z1, x2, y2, z2);
+
+              box(width, height, depth);
+              sphere(radius);
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Caméra</h4>
+
+          <div class="fragment current-visible" data-fragment-index="0" style="position: absolute; font-size: smaller">
+            <img src="img/perspective.jpg" width="50%">
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="1" style="position: absolute; font-size: smaller">
+            <img src="img/camera-perspective.png" width="50%">
+          </div>
+        </section>
+
+        <section>
+          <h4>Caméra</h4>
+
+          <!-- FIXME: Figure view frustum. -->
+
+          <div style="font-size: smaller">
+            <p>Position: position de la caméra-oeil / du centre, vecteur vertical</p>
+
+            <p style="text-align: left; font-size: smaller">Code Processing</p>
+            <pre><code data-trim>
+              camera(eyeX, eyeY, eyeZ, // position of the eye
+                     centerX, centerY, centerZ, // position of the reference point
+                     upX, upY, upZ); // direction of the up vector
+            </code></pre>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="0" style="position: absolute; font-size: smaller">
+            <img src="img/scene-camera-position-0.jpg" width="50%">
+            <p style="font-size: smaller">`eye = (0, 0, 1)`</p>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="1" style="position: absolute; font-size: smaller">
+            <img src="img/scene-camera-position-1.jpg" width="50%">
+
+            <p style="font-size: smaller">`eye = (0, -0.5, 1)`</p>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="2" style="position: absolute; font-size: smaller">
+            <img src="img/scene-camera-position-2.jpg" width="50%">
+
+            <p style="font-size: smaller">`eye = (0.5, -0.5, 1)`</p>
+          </div>
+        </section>
+
+        <section>
+          <h4>Camera</h4>
+
+          <div style="font-size: smaller">
+            <p style="text-align: left">Projection: perspective / <a href="https://en.wikipedia.org/wiki/Pinhole_camera_model">modèle sténopé</a>, `x_c = f_x (x_w / z_w)`</p>
+
+            <p style="text-align: left; font-size: smaller">Code Processing</p>
+
+            <pre><code data-trim>
+              perspective(fov, // vertical field of view
+                          aspect, // WIDTH / HEIGHT ratio
+                          zNear, // distance to the nearest clipping plane
+                          zFar); // distance to the furthest clipping plane
+            </code></pre>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="0" style="position: absolute; font-size: smaller">
+            <img src="img/scene-camera-fov-60.jpg" width="40%">
+
+            <p style="font-size: smaller">`fov = 60°`</p>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="1" style="position: absolute; font-size: smaller">
+            <img src="img/scene-camera-fov-30.jpg" width="40%">
+
+            <p style="font-size: smaller">`fov = 30°`</p>
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="2" style="position: absolute; font-size: smaller">
+            <img src="img/scene-camera-fov-90.jpg" width="40%">
+
+            <p style="font-size: smaller">`fov = 90°`</p>
+          </div>
+        </section>
+
+        <section>
+          <h4>Géométrie</h4>
+
+          <div style="font-size: smaller">
+            <p style="text-align: left">Prédéfinie</p>
+
+            <p style="text-align: left; font-size: smaller">Code Processing</p>
+
+            <pre><code data-trim>
+              pushMatrix();
+                translate(0.125, 0.125, -0.125);
+                box(0.5, 0.5, 0.5);
+              popMatrix();
+              pushMatrix();
+                translate(-0.125, -0.125, 0.125);
+                sphereDetail(128);
+                sphere(0.25);
+              popMatrix();
+            </code></pre>
+
+            <img src="img/scene-with-lighting.jpg" width="40%">
+          </div>
+        </section>
+
+        <section>
+          <h4>Géométrie</h4>
+
+          <div style="font-size: smaller">
+            <p style="text-align: left">Définition explicite de géométrie: triangles, etc...</p>
+
+            <p style="text-align: left; font-size: smaller">Code Processing</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              beginShape(TRIANGLES); // TRIANGLE_STRIP, POINTS, LINES, ...
+                // +z face of a cube: 2 triangles
+                vertex(-0.25, -0.25,  0.25);
+                vertex( 0.25, -0.25,  0.25);
+                vertex( 0.25,  0.25,  0.25);
+
+                vertex(-0.25, -0.25,  0.25);
+                vertex( 0.25,  0.25,  0.25);
+                vertex(-0.25,  0.25,  0.25);
+
+                // ...
+              endShape();
+            </code></pre>
+          </div>
+        </section>
+
+
+        <section>
+          <h4>Matériaux et illumination</h4>
+
+          <div class="fragment current-visible" data-fragment-index="0" style="position: absolute; font-size: smaller">
+            <p style="text-align: left">Sans illumination (couleur constante):</p>
+
+            <img src="img/scene-without-lighting.jpg" width="55%">
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="1" style="position: absolute; font-size: smaller">
+            <p style="text-align: left">Avec illumination:</p>
+
+            <img src="img/scene-with-lighting.jpg" width="55%">
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="2" style="position: absolute; font-size: smaller">
+            <p style="text-align: left">Avec illumination (matériau + lumière):</p>
+
+            <img src="img/scene-with-lighting.jpg" width="55%">
+
+            <div style="font-size: smaller">
+              <ul>
+                <li>Matériaux: propriétés des surfaces de la scène</li>
+                <li>Sources de lumière: directionnelle, ponctuelle, etc...</li>
+              </ul>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Matériaux et illumination</h4>
+
+          <div class="fragment" style="font-size: smaller">
+            <p>Formules empiriques de calcul d'illumination locale</p>
+
+            <p>(modèle de <a href="https://en.wikipedia.org/wiki/Phong_reflection_model">Phong</a>):</p>
+
+            <p>`C = C_(ambient) + C_(di f fuse) + C_(specu lar)`</p>
+
+            <p style="text-align: left">`C_(ambient) = L_(ambient) M_(ambient)`</p>
+
+            <p style="text-align: left">`C_(di f fuse) = L_(di f fuse) M_(di f fuse) max(< vec n . vec l >, 0)`</p>
+
+            <p style="text-align: left">`C_(specu lar) = L_(specu lar) M_(specu lar) max(< vec r . vec l >, 0)^(shi ni n ess)`</p>
+          </div>
+        </section>
+
+        <section>
+          <h4>Matériaux et illumination</h4>
+
+          <div class="fragment current-visible" data-fragment-index="0" style="position: absolute; font-size: smaller">
+            <img src="img/shading-0.png" width="70%">
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="1" style="position: absolute; font-size: smaller">
+            <img src="img/shading-1.png" width="70%">
+          </div>
+
+          <div class="fragment current-visible" data-fragment-index="2" style="position: absolute; font-size: smaller">
+            <img src="img/shading-2.png" width="70%">
+          </div>
+        </section>
+
+        <section>
+          <h4>Matériaux et illumination</h4>
+
+          <div style="font-size: smaller">
+            <div style="font-size: smaller">
+              <p>`C = C_(ambient)`</p>
+
+              <img src="img/scene-lighting-0-ambient.jpg" width="30%">
+
+              <p style="text-align: left">`C_(ambient) = L_(ambient) M_(ambient)`</p>
+            </div>
+
+            <p style="text-align: left; font-size: smaller">Code Processing</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              ambientLight(31, 31, 31);
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Matériaux et illumination</h4>
+
+          <div style="font-size: smaller">
+            <div style="font-size: smaller">
+              <p>`C = C_(ambient) + C_(di f fuse)`</p>
+
+              <img src="img/scene-lighting-1-diffuse.jpg" width="30%">
+
+              <p style="text-align: left">`C_(di f fuse) = L_(di f fuse) M_(di f fuse) max(< vec n . vec l >, 0)`</p>
+            </div>
+
+            <p style="text-align: left; font-size: smaller">Code Processing</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              ambientLight(31, 31, 31);
+              directionalLight(255, 255, 255, -0.5, 0.75, -2.0);
+
+              fill(52, 101, 164);
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Matériaux et illumination</h4>
+
+          <div style="font-size: smaller">
+            <div style="font-size: smaller">
+              <p>`C = C_(ambient) + C_(di f fuse) + C_(specu lar)`</p>
+
+              <img src="img/scene-lighting-2-specular.jpg" width="30%">
+
+              <p style="text-align: left">`C_(specu lar) = L_(specu lar) M_(specu lar) max(< vec r . vec l >, 0)^(shi ni n ess)`</p>
+            </div>
+
+            <p style="text-align: left; font-size: smaller">Code Processing</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              ambientLight(31, 31, 31);
+              directionalLight(255, 255, 255, -0.5, 0.75, -2.0);
+              lightSpecular(255, 255, 255);
+
+              fill(52, 101, 164);
+              specular(191, 191, 191);
+              shininess(100.0);
+            </code></pre>
+
+          </div>
+        </section>
+
+        <section>
+          <h4>Matériaux et illumination</h4>
+
+          <div style="font-size: smaller">
+            <div style="font-size: smaller">
+              <p>`C_(specu lar) = L_(specu lar) M_(specu lar) max(< vec r . vec l >, 0)^(shi ni n ess)`</p>
+
+              <img src="img/scene-specular-31.jpg" width="30%">
+              <img src="img/scene-specular-63.jpg" width="30%">
+              <br>
+              <img src="img/scene-specular-127.jpg" width="30%">
+              <img src="img/scene-specular-191.jpg" width="30%">
+
+              <p>`M_(specu lar) = 12%, 25%, 50%, 75%`</p>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Matériaux et illumination</h4>
+
+          <div style="font-size: smaller">
+            <div style="font-size: smaller">
+              <p>`C_(specu lar) = L_(specu lar) M_(specu lar) max(< vec r . vec l >, 0)^(shi ni n ess)`</p>
+
+              <img src="img/scene-shininess-10.jpg" width="30%">
+              <img src="img/scene-shininess-50.jpg" width="30%">
+              <img src="img/scene-shininess-100.jpg" width="30%">
+
+              <p>`shi ni n ess = 10, 50, 100`</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+    <script>
+      Reveal.initialize({
+        controls: true,
+        progress: true,
+        slideNumber: 'c/t',
+        history: true,
+        center: true,
+        overview: true,
+        keyboard: true,
+        touch: true,
+        help: true,
+        autoSlide: 0,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        math: {
+          mathjax: 'https://cdn.mathjax.org/mathjax/latest/MathJax.js',
+          config: 'AM_HTMLorMML' // See http://docs.mathjax.org/en/latest/config-files.html
+        },
+        dependencies: [
+          { src: 'plugin/markdown/marked.js' },
+          { src: 'plugin/markdown/markdown.js' },
+          { src: 'plugin/math/math.js', async: true },
+          { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+        ]
+      });
+    </script>
+  </body>
+</html>
+<!-- vim:set sw=2: -->
