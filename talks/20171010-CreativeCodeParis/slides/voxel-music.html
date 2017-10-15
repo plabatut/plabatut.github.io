@@ -1,0 +1,674 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Raymarching, voxelisation et visualisation musicale</title>
+    <link rel="stylesheet" href="css/reveal.css">
+    <link rel="stylesheet" href="css/theme/black.css">
+    <link rel="stylesheet" href="lib/css/zenburn.css">
+    <script>
+      var link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.type = 'text/css';
+      link.href = window.location.search.match(/print-pdf/gi) ? 'css/print/pdf.css' : 'css/print/paper.css';
+      document.getElementsByTagName('head' )[0].appendChild(link);
+    </script>
+  </head>
+  <body>
+    <div class="reveal">
+      <div class="slides">
+        <section>
+          <h3>Raymarching, voxelisation et visualisation musicale</h3>
+
+          <ol class="fragment">
+            <li>Motivation</li>
+            <li>(R)appel: raymarching</li>
+            <li>Raymarching voxélisé</li>
+            <li>Post-traitements</li>
+            <li>Visualisation musicale en shadertoy</li>
+            <li>Démo</li>
+          </ol>
+        </section>
+
+        <section>
+          <h4>Motivation</h4>
+
+          <div style="font-size: smaller">
+            <p style="text-align: left">Clips musicaux en stop motion:</p>
+            <p><a href="https://www.youtube.com/embed/Ntc4l-poovo?start=118&end=137&version=3">Grindin'</a> (Nobody Beats The Drum)</p>
+            <p><a href="https://www.youtube.com/embed/smKf_cQCdeo?start=55&end=92&version=3">With Every Heartbeat</a> (Robyn)</p>
+            <p><a href="https://www.youtube.com/embed/Z-3z3DNUGiE?start=31&end=46&version=3">Brain</a> (Étienne de Crécy)</p>
+            <p><a href="https://www.youtube.com/embed/QVnzMChFvDI?start=15&end=66&version=3">8-bit trip</a>, <a href="https://www.youtube.com/embed/p8RJWrP4zOc?start=59&end=97&version=3">Brainglass</a>, <a href="https://www.youtube.com/embed/plGRtq6jVF8?start=31&end=39&version=3">Kallbrand inst</a> (Rymdreglagle)</p>
+          </div>
+
+          <div style="font-size: smaller">
+            <p style="text-align: left">Shaders et voxels:</p>
+            <p><a href="https://www.shadertoy.com/embed/4dfGz4?gui=true&paused=true">Voxel Tyre</a> (Dave Hoskins/ shadertoy)</p>
+
+            <p><a href="https://www.shadertoy.com/embed/4ds3WS?gui=true&paused=true">Minecraft</a> (Reinder Nijhoff / shadertoy)</p>
+
+            <p><a href="https://www.shadertoy.com/embed/4sXGDj?gui=true&paused=true">Lego Castle</a> (Antonalog / shadertoy)</p>
+          </div>
+        </section>
+
+        <section>
+          <h4>Motivation</h4>
+
+          <div style="font-size: smaller">
+            <p style="text-align: left">Shaders et musique:</p>
+
+            <p><a href="https://www.shadertoy.com/view/Xds3Rr">Input - Sound</a> (Íñigo Quílez / shadertoy)</a>
+
+            <p>Exemples: <a href="https://www.shadertoy.com/results?query=&sort=popular&filter=musicstream">shadertoy</a> [Soundcloud]</li>
+
+            <p style="text-align: left">Visualisation musicale live:</p>
+
+            <p>Compétition: <a href="https://www.youtube.com/user/RevisionParty">Revision 2014-2017</a> [Shader Showdown]</p>
+            <p>Compétition: <a href="https://www.youtube.com/channel/UC-yrEdiXTuzK0LienrEgCwQ">Solskogen 2016-2017</a> [Live shader coding compo]</p>
+          </ul>
+            <p>Logiciel de live coding musical: <a href="https://github.com/Gargaj/Bonzomatic">Bonzomatic</a></p>
+          </div>
+        </section>
+
+        <section>
+          <h4>(R)appel: Algorithme de Raymarching</h4>
+
+          <div style="font-size: smaller">
+            <div class="fragment current-visible" data-fragment-index="1" style="position: absolute">
+              <p style="text-align: left">Raycasting:</p>
+
+              <img src="img/raycasting.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="2" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas constant:</p>
+
+              <img src="img/raymarching-over.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="5" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-0.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="6" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-1.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="7" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-2.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="8" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-3.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="9" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-4.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="10" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-5.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="11" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-6.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="12" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-7.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="13" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-8.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="14" style="position: absolute">
+              <p style="text-align: left">Raymarching à pas adaptif:</p>
+
+              <img src="img/raymarching-9.png" width="70%" />
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>(R)appel: Implémentation</h4>
+
+          <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+          <pre><code data-trim style="font-size: smaller">
+            float intersect(vec3 O /* origin */, vec3 d /* direction */) {
+                float t = 0;
+                for (int i = 0; i < MaxNumSteps; ++i) {
+                     vec3 P = O + t * d;
+                     float r = f(P);
+                     if (r < Epsilon)
+                         return t;
+                     t += r;
+                }
+                return MaxT;
+            }
+          </code></pre>
+
+          <div class="fragment" style="font-size: smaller">
+            <p style="color: #42affa"><code>f(P)</code>?</p>
+          </div>
+        </section>
+
+        <section>
+          <h4>(R)appel: Fonction distance signée</h4>
+
+          <div style="font-size: smaller">
+            <div class="fragment current-visible" data-fragment-index="0" style="position: absolute">
+              <img src="img/sdf-0.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="1" style="position: absolute">
+              <img src="img/sdf-1.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="2" style="position: absolute">
+              <img src="img/sdf-2.png" width="70%" />
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>(R)appel: Primitives de base - Sphère</h4>
+
+          <div style="width: 100%; overflow: hidden; font-size: smaller">
+            <div style="width: 45%; float: left; font-size: smaller">
+              <dl>
+                <dt>Sphère</dt>
+                <dd>centre `O`</dd>
+                <dd>rayon `R`</dd>
+                <dd>`f(P) = |vec(OP)| - R`</dd>
+              </dl>
+            </div>
+            <div style="width: 55%; float: right">
+              <img src="img/sphere.jpg" width="75%">
+            </div>
+          </div>
+          <div class="fragment" style="font-size: smaller">
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              float sdfSphere(vec3 P, float R) {
+                  return length(P) - R;
+              }
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>(R)appel: Primitives, opérations, déformations</h4>
+
+          <div style="font-size: smaller; text-align: left">
+            <p class="fragment">Primitives de base: demi-espace (plan), cylindre, tore, cone, ...</p>
+            <p class="fragment">Opérations booléennes: union, intersection, différence, négation,</p>
+            <p class="fragment">Déformations: translation, rotation, homothétie, symmétrie,</p>
+            <p class="fragment">Déformations: répétition,</p>
+            <p class="fragment">Déformations: torsion et courbure,</p>
+            <p class="fragment">Déformations: déplacement,</p>
+            <p class="fragment">Déformations: interpolation.</p>
+          </div>
+        </section>
+
+        <section>
+          <h4>(R)appel: exemple de dérivation</h4>
+
+          <div style="width: 100%; overflow: hidden; font-size: smaller">
+            <div style="width: 45%; float: left; font-size: smaller">
+              <dl>
+                <dt>Pavé droit à trous cylindriques</dt>
+                <dd>Pavé droit à arêtes arrondies</dd>
+                <dd>Translation</dd>
+                <dd>Cylindre</dd>
+                <dd>Cylindre à section carrée</dd>
+                <dd>Translation</dd>
+                <dd>Cylindre à section hexagonale</dd>
+                <dd>Union de 3 cylindres</dd>
+                <dd>Différence (lissée)</dd>
+              </dl>
+            </div>
+            <div style="width: 55%; float: right">
+              <img src="img/box-with-holes.jpg" width="75%">
+            </div>
+          </div>
+
+          <div class="fragment" style="font-size: smaller">
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              float sdfBoxWithHoles(vec3 P) {
+                  float d1 = sdfRoundBox(P, vec3(2.25, 0.75, 0.5), 0.125);
+                  float d2 = sdfCylinder(P - vec3(1.5, 0.0, 0.0), 0.5);
+                  float d3 = sdfBoxCylinder(P, vec2(0.5));
+                  float d4 = sdfHexagonalCylinder(P + vec3(1.5, 0.0, 0.0), 0.5);
+                  float d234 = min(d2, min(d3, d4));
+                  vec2 u = max(vec2(0.0625 + d1, 0.0625 - d234), vec2(0.0));
+                  return min(-0.0625, max(d1, -d234)) + length(u);
+              }
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>(R)appel: Illumination</h4>
+
+          <div class="fragment" style="font-size: smaller">
+            <p style="text-align: left">Modèle de <a href="https://en.wikipedia.org/wiki/Phong_reflection_model">Phong</a>:</p>
+
+            <p style="text-align: center">`C_(p ixel) = C_(ambient) + C_(di f fuse) + C_(specu lar)`</p>
+
+            <p style="text-align: left">`C_(ambient) = L_(ambient) M_(ambient)`</p>
+
+            <p style="text-align: left">`C_(di f fuse) = L_(di f fuse) M_(di f fuse) max(< vec n . vec l >, 0)`</p>
+
+            <p style="text-align: left">`C_(specu lar) = L_(specu lar) M_(specu lar) max(< vec r . vec l >, 0)^(shi ni n ess)`</p>
+          </div>
+
+          <div class="fragment" style="font-size: smaller">
+            <p style="text-align: left">La normale (sortante) `vec n` à `del ccS` est:</p>
+
+            <p>`vec n = vec grad f = ((del f) / (del x), (del f) / (del y), (del f) / (del z))`</p>
+          </div>
+        </section>
+
+        <section>
+          <h4>Raymarching standard</h4>
+
+          <div style="font-size: smaller">
+            <img src="img/raymarching-standard.png" width="60%" />
+
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              float f(vec3 P) {
+                  vec3 offset = 0.5 * vec3(-0.25, 0.25, 0.25);
+                  float d1 = sdfSphere(P - offset, 0.25);
+                  float d2 = sdfBox(P + offset, 0.25);
+                  return min(d1, d2);
+              }
+            </pre></code>
+          </div>
+        </section>
+
+        <section>
+          <h4>Raymarching voxélisé</h4>
+
+          <div style="font-size: smaller">
+            <img src="img/raymarching-voxel.png" width="60%" />
+
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              float f(vec3 P) {
+                  vec3 offset = 0.5 * vec3(-0.25, 0.25, 0.25);
+                  float d1 = sdfSphere(P - offset, 0.25);
+                  float d2 = sdfBox(P + offset, 0.25);
+                  return min(d1, d2);
+              }
+            </pre></code>
+          </div>
+        </section>
+
+        <section>
+          <h4>Raymarching voxélisé</h4>
+
+          <div style="font-size: smaller">
+            <div class="fragment current-visible" data-fragment-index="0" style="position: absolute">
+              <p style="text-align: left">Raymarching voxélisé:</p>
+
+              <img src="img/raymarching-voxel-grid.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="1" style="position: absolute">
+              <p style="text-align: left">Raymarching voxélisé:</p>
+
+              <img src="img/raymarching-voxel-0.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="2" style="position: absolute">
+              <p style="text-align: left">Raymarching voxélisé:</p>
+
+              <img src="img/raymarching-voxel-1.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="3" style="position: absolute">
+              <p style="text-align: left">Raymarching voxélisé:</p>
+
+              <img src="img/raymarching-voxel-2.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="4" style="position: absolute">
+              <p style="text-align: left">Raymarching voxélisé:</p>
+
+              <img src="img/raymarching-voxel-3.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="5" style="position: absolute">
+              <p style="text-align: left">Raymarching voxélisé:</p>
+
+              <img src="img/raymarching-voxel-4.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="6" style="position: absolute">
+              <p style="text-align: left">Raymarching voxélisé:</p>
+
+              <img src="img/raymarching-voxel-5.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="7" style="position: absolute">
+              <p style="text-align: left">Raymarching voxélisé:</p>
+
+              <img src="img/raymarching-voxel-6.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="8" style="position: absolute">
+              <p style="text-align: left">Raymarching voxélisé:</p>
+
+              <img src="img/raymarching-voxel-7.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="9" style="position: absolute">
+              <p style="text-align: left">Raymarching voxélisé:</p>
+
+              <img src="img/raymarching-voxel-8.png" width="70%" />
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Raymarching voxélisé</h4>
+
+          <div class="fragment" style="font-size: 75%">
+            <p style="text-align: left; color: #42affa">Intersection `P`</p>
+            <p>Intersection du rayon `(O, vec d)` avec la dernière facette traversée</p>
+            <p>(ou milieu des centres des derniers voxels traversés)</p>
+          </div>
+
+          <div class="fragment" style="font-size: 75%">
+            <p style="text-align: left; color: #42affa">Normale `vec n`</p>
+            <p>Direction `+-vec e_x`, `+-vec e_y`, `+-vec e_z` selon la dernière facette traversée et la direction du rayon</p>
+          </div>
+
+          <div class="fragment" style="font-size: 75%">
+            <p style="text-align: left; color: #42affa">Aucune autre modification (calcul d'illumination, etc...)</p>
+          </div>
+
+          <div class="fragment" style="font-size: 75%">
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              float intersectGrid(vec3 O, vec3 d, out vec3 n, float gridSize) {
+                // ...
+              }
+            </code></pre>
+          </div>
+        </section>
+
+
+        <section>
+          <h4>Post-traitement: sans arêtes</h4>
+
+          <div style="font-size: smaller">
+            <img src="img/pp-edges-disabled.png" width="85%" />
+          </div>
+        </section>
+
+        <section>
+          <h4>Post-traitement: avec arêtes</h4>
+
+          <div style="font-size: smaller">
+            <img src="img/pp-edges-enabled.png" width="85%" />
+          </div>
+        </section>
+
+        <section>
+          <h4>Post-traitement: détection d'arêtes</h4>
+
+          <div style="font-size: smaller">
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              float getEdgeFactor(vec3 P, float gridSize) {
+                const float EdgeHalfWidth = 0.15;
+
+                vec3 Q = abs(mod(P / vec3(gridSize) + 0.5, 1.0) - 0.5);
+                vec3 T = vec3(1.0) - smoothstep(vec3(0.0), vec3(EdgeHalfWidth), Q);
+
+                return max(T.x * T.y, max(T.y * T.z, T.z * T.x));
+              }
+
+              vec3 shade(vec3 O, vec3 P, vec3 n, vec3 l, float gridSize, ...) {
+                // ...
+                const vec3 EdgeColor = vec3(0.0625);
+                float a = getEdgeFactor(P, gridSize);
+                diffuse = mix(diffuse, EdgeColor, a);
+
+                return ambient + diffuse * max(dot(n, l), 0.0) + ...;
+              }
+            </code></pre>
+
+            <p>Arêtes internes / bord: <a href="http://iquilezles.org/www/articles/voxellines/voxellines.htm">Voxel lines and occlusion</a>, <a href="https://www.shadertoy.com/view/Xds3Rr">Voxel Edges</a> (Íñigo Quílez / shadertoy)</p>
+          </div>
+        </section>
+
+        <section>
+          <h4>Post-traitement: occlusion ambiante</h4>
+
+          <div style="font-size: smaller">
+            <p style="text-align: center">`C_(p ixel) = C_(ambient) + C_(di f fuse) + C_(specu lar)`</p>
+
+            <p style="text-align: left">`C_(ambient) = L_(ambient) M_(ambient)`</p>
+          </div>
+
+          <div class="fragment" style="font-size: smaller">
+            <p>Remplacer `L_(ambient)` (constante) par une valeur modulée par le <em>degré d'occlusion de la géométrie locale de la scène</em>.
+          </div>
+
+          <div class="fragment" style="font-size: smaller">
+            <p style="text-align: left">En pratique:
+
+            <ul>
+              <li>Échantillonner l'occlusion dans la direction de `vec n`,</li>
+              <li>Pour chaque échantillon `Q`, l'occlusion est dérivée de `f(Q)`,</li>
+              <li>[Voxélisation] Utiliser la distance à la surface voxélisée à la place de `f(Q)`.</li>
+            </ul>
+          </div>
+        </section>
+
+        <section>
+          <h4>Post-traitement: occlusion ambiante</h4>
+
+          <div style="font-size: smaller">
+            <div class="fragment current-visible" data-fragment-index="0" style="position: absolute">
+              <img src="img/pp-ao.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="2" style="position: absolute">
+              <img src="img/pp-ao-0.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="3" style="position: absolute">
+              <img src="img/pp-ao-1.png" width="70%" />
+            </div>
+
+            <div class="fragment current-visible" data-fragment-index="4" style="position: absolute">
+              <img src="img/pp-ao-2.png" width="70%" />
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h4>Post-traitement: sans occlusion ambiante</h4>
+
+          <div style="font-size: smaller">
+            <img src="img/pp-ao-disabled.png" width="85%" />
+          </div>
+        </section>
+
+        <section>
+          <h4>Post-traitement: avec occlusion ambiante</h4>
+
+          <div style="font-size: smaller">
+            <img src="img/pp-ao-enabled.png" width="85%" />
+          </div>
+        </section>
+
+        <section>
+          <h4>Post-traitement: occlusion ambiante</h4>
+
+          <div style="font-size: smaller">
+            <p style="text-align: left; font-size: 75%">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: 75%">
+              float ambientOcclusion(vec3 P, vec3 n, float gridSize) {
+                  float dt = 0.9 * gridSize;
+                  float t = dt;    
+                  float ao = 0.0;
+                  for (int i = 1; i <= 8; ++i) {
+                      vec3 Q = P + t * n;
+                      vec3 R = gridSize * (floor(Q / gridSize) + vec3(0.5));
+                      ao += (t - f(R)) / pow(2.0, float(i));
+                      t += dt;
+                  }
+                  return 1.0 - clamp(ao, 0.0, 1.0);
+              }
+              vec3 shade(vec3 O, vec3 P, vec3 n, vec3 l, float gridSize, ...) {
+                 float ao = ambientOcclusion(P, n, gridSize);
+                 // ...
+                 return ao * ambient + diffuse * max(dot(n, l), 0.0) + ...;
+              }
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Visualisation musicale en shadertoy</h4>
+
+          <div style="font-size: 75%">
+            <ol>
+              <li class="fragment">Sélectionner comme texture d'entrée (e.g. <code>iChannel0</code>):
+                <ul>
+                  <li>une des musiques prédéfinies,</li>
+                  <li>le microphone,</li>
+                  <li>un clip audio sur <a href="https://soundcloud.com/">SoundCloud</a>.
+                </ul>
+              </li>
+              <li class="fragment">Utiliser la texture dans le shader:
+
+              <p style="text-align: left">1ère ligne: spectre (magnitude normalisée de la FFT)</p>
+              <p style="text-align: left">2ème ligne: échantillon de musique (mono canal normalisé)</p>
+
+              <p style="text-align: left; font-size: smaller">Code GLSL</p>
+              <pre><code data-trim style="font-size: smaller">
+                float fft = texture(iChannel0, vec2(f, 0.25)).x; // Spectre
+                float wave = texture(iChannel0, vec2(t, 0.75)).x; // Échantillon
+              </code></pre>
+
+              </li>
+            </ol>
+          </div>
+        </section>
+
+        <section>
+          <h4>Visualisation musicale en shadertoy</h4>
+
+          <div style="font-size: smaller">
+            <img src="img/shadertoy-waveform.png" width="50%" />
+
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+                vec2 uv = fragCoord.xy / iResolution.xy;
+                float wave = texture(iChannel0, vec2(uv.x, 0.75)).x;
+                vec3 color = vec3(1.0 - smoothstep(-0.1, 0.1, abs(wave - uv.y)));
+                fragColor = vec4(color, 1.0);
+              }
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Visualisation musicale en shadertoy</h4>
+
+          <div style="font-size: smaller">
+            <img src="img/shadertoy-spectrum.png" width="50%" />
+
+            <p style="text-align: left; font-size: smaller">Code GLSL</p>
+
+            <pre><code data-trim style="font-size: smaller">
+              void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+                  vec2 uv = fragCoord.xy / iResolution.xy;
+                  float fft = texture(iChannel0, vec2(uv.x, 0.25)).x;
+                  vec3 color = vec3(fft > uv.y ? fft : 0.0);
+                  fragColor = vec4(color, 1.0);
+              }
+            </code></pre>
+          </div>
+        </section>
+
+        <section>
+          <h4>Démo</h4>
+
+          <div style="font-size: smaller">
+            <img src="img/shadertoy-demo-1.png" width="45%" />
+
+            <img src="img/shadertoy-demo-2.png" width="45%" />
+          </div>
+        </section>
+      </div>
+    </div>
+
+    <script src="lib/js/head.min.js"></script>
+    <script src="js/reveal.js"></script>
+    <script>
+      Reveal.initialize({
+        controls: true,
+        progress: true,
+        slideNumber: 'c/t',
+        history: true,
+        center: true,
+        overview: true,
+        keyboard: true,
+        touch: true,
+        help: true,
+        autoSlide: 0,
+        transition: 'slide',
+        transitionSpeed: 'default',
+        math: {
+          mathjax: 'https://cdn.mathjax.org/mathjax/latest/MathJax.js',
+          config: 'AM_HTMLorMML' // See http://docs.mathjax.org/en/latest/config-files.html
+        },
+        dependencies: [
+          { src: 'plugin/markdown/marked.js' },
+          { src: 'plugin/markdown/markdown.js' },
+          { src: 'plugin/math/math.js', async: true },
+          { src: 'plugin/highlight/highlight.js', async: true, callback: function() { hljs.initHighlightingOnLoad(); } }
+        ]
+      });
+    </script>
+  </body>
+</html>
+<!-- vim:set sw=2: -->
